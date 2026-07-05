@@ -1,0 +1,42 @@
+export const enemies = [
+  {
+    id: "B",
+    name: "B",
+    type: "B",
+      team:"enemy",
+      isBoss: false,
+    hp: 30,
+    stats: {
+      str: 2,
+      agi: 5,
+      luk: 3,
+      int: 1,
+      hpStat: 0,
+      mpStat: 0
+    },
+    statusEffects: [],
+   skills: [
+  "attack",
+  "heavy_attack",
+  "all_attack",
+  "dodge",
+  "defend",
+  "escape",
+  "heal",
+  "bleed",
+  "multi_attack",
+  "counter",
+  "lifesteal",
+   "full_attack",
+   "sure_hit",
+   "attribute_attack",
+   "execute",
+   "charge",
+   "charge_attack",
+   "berserk",
+   "barrier",
+   "damage_reduction",
+   "reflect",
+],
+  }
+];

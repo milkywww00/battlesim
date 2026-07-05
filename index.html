@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Battle Simulator</title>
+
+  <style>
+    .selected {
+      background: yellow;
+      font-weight: bold;
+    }
+
+    #log {
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      height: 200px;
+      overflow-y: auto;
+      white-space: pre-line;
+      background: #111;
+      color: #eee;
+      font-family: monospace;
+    }
+
+    button {
+      margin: 3px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Battle Simulator</h1>
+
+  <div id="game">
+
+    <h2 id="turnInfo"></h2>
+
+    <!-- 캐릭터 상태 표시용 (원하면 나중에 사용) -->
+    <div id="characters"></div>
+
+    <h3>Skills</h3>
+    <div id="skills"></div>
+
+    <h3>Targets</h3>
+    <div id="targets"></div>
+
+    <button id="confirmBtn">행동 확정</button>
+    <button id="skipBtn">턴 스킵</button>
+<h3>Target Select</h3>
+    <div id="debugTargets"></div>
+
+    <h3>Debug Control</h3>
+    <input id="hpInput" type="number" value="10" />
+    <button id="hpPlus">HP +</button>
+    <button id="hpMinus">HP -</button>
+
+    <input id="mpInput" type="number" value="10" />
+    <button id="mpPlus">MP +</button>
+    <button id="mpMinus">MP -</button>
+
+    <input id="statusInput" type="text" placeholder="dot / stat_mod / stun ..." />
+    <button id="addStatus">상태이상 추가</button>
+
+    <h3>Log</h3>
+    <div id="log"></div>
+
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+
+</body>
+</html>
