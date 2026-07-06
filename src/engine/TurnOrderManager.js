@@ -36,22 +36,34 @@ export class TurnOrderManager {
   return actor;
 }
  removeDead(id) {
+
   const deadIndex = this.order.findIndex(c => c.id === id);
 
   this.order = this.order.filter(c => c.id !== id);
-  this.characters = this.characters.filter(c => c.id !== id);
 
   if (deadIndex === -1) return;
 
   if (deadIndex < this.index) {
     this.index--;
   }
-  
 
   if (this.index < 0) this.index = 0;
   if (this.index >= this.order.length) this.index = 0;
 }
 current() {
   return this.order[this.index] ?? null;
+}
+
+addCharacter(character) {
+
+  if (!this.characters.find(c => c.id === character.id)) {
+    this.characters.push(character);
+  }
+
+  if (!this.order.find(c => c.id === character.id)) {
+    this.order.push(character);
+  }
+
+  this.rebuildOrder();
 }
 }

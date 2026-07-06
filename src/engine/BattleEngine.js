@@ -24,7 +24,44 @@ step(action) {
   }
 
   const currentActor = this.turnManager.current();
+
+const restricted = currentActor.statusEffects?.find(
+  e => e.type === "restrict"
+);
+
+if (restricted) {
+  logs.push(`[행동 불가] ${currentActor.name}은(는) 움직일 수 없다.`);
+
+  // 이제 지속시간 감소
   this.processStatusEffects(logs, currentActor);
+
+  this.turnManager.getNext();
+  return logs;
+}
+
+const fear = currentActor.statusEffects?.find(
+  e => e.type === "fear"
+);
+
+if (fear) {
+
+  logs.push(
+    `[공포] ${currentActor.name}은(는) 겁에 질려 도주를 시도한다.`
+  );
+
+  this.processStatusEffects(logs, currentActor);
+
+  return logs.concat(
+    this.executeSkill(
+      currentActor,
+      [currentActor],
+      skills.escape
+    )
+  );
+}
+
+// 행동 가능하면 그 다음 상태이상 처리
+this.processStatusEffects(logs, currentActor);
 
     if (!action) return logs;
 
@@ -34,9 +71,56 @@ step(action) {
      return logs;
     }
 
+    
+
 
     const actor = this.characters.find(c => c.id === action.actorId);
     const skill = skills[action.skillId];
+
+    const confused = currentActor.statusEffects?.find(
+  e => e.type === "confusion"
+);
+
+if (confused) {
+
+  const alive = this.characters.filter(c => c.hp > 0);
+
+  const randomTarget =
+    alive[Math.floor(Math.random() * alive.length)];
+
+  action.actorId = currentActor.id;
+  action.targetId = randomTarget.id;
+
+  logs.push(
+    `[식별불가] ${currentActor.name}의 공격 대상이 ${randomTarget.name}(으)로 변경되었다.`
+  );
+}
+
+    // 봉인 체크
+const sealed = actor.statusEffects?.find(
+  e => e.type === "seal"
+);
+
+const allowedSkills = [
+  "attack",
+  "defend",
+  "dodge",
+  "escape"
+];
+
+if (
+  sealed &&
+  !allowedSkills.includes(action.skillId)
+) {
+
+  logs.push(
+    `[봉인] ${actor.name}은(는) 기본 행동만 사용할 수 있다.`
+  );
+
+  this.turnManager.getNext();
+
+  return logs;
+}
 
 let targetType;
 
@@ -60,12 +144,20 @@ switch (skill.target) {
     };
     break;
 
+    case "all_allies":
+    targetType = {
+        type: "all_allies"
+    };
+    break;
+
   default:
     targetType = {
       type: "single",
       id: action.targetId
     };
 }
+
+console.log(targetType);
 
 const targets = this.resolveTargets(actor, {
   targets: targetType
@@ -76,7 +168,6 @@ logs.push(...skillLogs);
 
 for (const t of targets) {
   if (t.hp <= 0 && t !== actor) {
-    this.turnManager.removeDead(t.id);
     logs.push(`${t.name}이(가) 쓰러졌다.`);
   }
 }
@@ -127,6 +218,8 @@ const context = {
 
 
   for (const effect of skill.effects) {
+    console.log(effect);
+console.log(effect.type);
 
     if (effect.type === "charged_attack") {
 
@@ -184,10 +277,32 @@ if (effect.type === "reflect") {
   continue;
 }
 
+if (effect.type === "protect") {
+
+  for (const originalTarget of targets) {
+
+  let target = originalTarget;
+
+    if (!target.statusEffects) target.statusEffects = [];
+
+    target.statusEffects.push({
+      type: "protect",
+      duration: effect.duration,
+      protectorId: actor.id
+    });
+
+    logs.push(`[몸빵] ${actor.name}이(가) ${target.name}을(를) 보호한다.`);
+  }
+
+  continue;
+}
+
 if (effect.type === "barrier") {
   
 
-  for (const target of targets) {
+  for (const originalTarget of targets) {
+
+  let target = originalTarget;
 
     if (!target.statusEffects) target.statusEffects = [];
 
@@ -204,7 +319,9 @@ if (effect.type === "barrier") {
 
 if (effect.type === "damage_reduction") {
 
-  for (const target of targets) {
+  for (const originalTarget of targets) {
+
+  let target = originalTarget;
 
     if (!target.statusEffects) target.statusEffects = [];
 
@@ -237,7 +354,9 @@ if (effect.type === "damage_reduction") {
 
 if (effect.type === "execute") {
 
-  for (const target of targets) {
+  for (const originalTarget of targets) {
+
+  let target = originalTarget;
 
     // 보스는 즉사 면역
     if (target.isBoss) {
@@ -274,7 +393,141 @@ if (effect.type === "execute") {
   continue;
 }
 
+if (effect.type === "guts") {
+
+  actor.statusEffects.push({
+    type: "guts"
+  });
+
+  logs.push(
+    `[근성] ${actor.name}이(가) 쓰러지지 않으려 한다.`
+  );
+
+  continue;
+}
+
+if (effect.type === "drain") {
+
+  for (const target of targets) {
+
+    if (!target.statusEffects)
+      target.statusEffects = [];
+
+    target.statusEffects.push({
+      type: "drain",
+      duration: effect.duration,
+      ratio: effect.ratio,
+      healerId: actor.id
+    });
+
+    logs.push(
+      `[흡수] ${target.name}에게 흡수 효과 부여`
+    );
+  }
+
+  continue;
+}
+
+if (effect.type === "dodge_buff") {
+
+  for (const target of targets) {
+
+    if (!target.statusEffects)
+      target.statusEffects = [];
+
+    target.statusEffects.push({
+      type: "dodge_buff",
+      value: effect.value,
+      duration: effect.duration
+    });
+
+    logs.push(
+      `[회피율] ${target.name} +${effect.value}%`
+    );
+  }
+
+  continue;
+}
+    if (effect.type === "buff") {
+
+  for (const target of targets) {
+
+    if (!target.statusEffects)
+      target.statusEffects = [];
+
+    // 같은 버프 개수 확인
+    const count = target.statusEffects.filter(e =>
+      e.type === "buff" &&
+      e.stat === effect.stat &&
+      e.value === effect.value
+    ).length;
+
+    if (count >= (effect.maxStack ?? 99)) {
+      logs.push(`[실패] ${target.name}은(는) 더 이상 중첩되지 않는다.`);
+      continue;
+    }
+
+    target.statusEffects.push({
+      type: "buff",
+      stat: effect.stat,
+      value: effect.value,
+      duration: effect.duration
+    });
+
+    const text = effect.value > 0 ? "증가" : "감소";
+
+logs.push(
+  `[${text}] ${target.name} ${effect.stat} ${Math.abs(effect.value)}`
+);
+  }
+
+  continue;
+}
+
+if (effect.type === "accuracy_buff") {
+
+  for (const target of targets) {
+
+    if (!target.statusEffects)
+      target.statusEffects = [];
+
+    target.statusEffects.push({
+      type: "accuracy_buff",
+      value: effect.value,
+      duration: effect.duration
+    });
+
+    logs.push(
+      `[명중률] ${target.name} ${effect.value > 0 ? "+" : ""}${effect.value}%`
+    );
+  }
+
+  continue;
+}
+
+if (effect.type === "crit_buff") {
+
+  for (const target of targets) {
+
+    if (!target.statusEffects)
+      target.statusEffects = [];
+
+    target.statusEffects.push({
+      type: "crit_buff",
+      value: effect.value,
+      duration: effect.duration
+    });
+
+    logs.push(
+      `[크리티컬] ${target.name} +${effect.value}%`
+    );
+  }
+
+  continue;
+}
+
   if (effect.type === "apply_status") {
+
   for (const t of targets) {
     if (!t.statusEffects) t.statusEffects = [];
 
@@ -291,6 +544,51 @@ if (effect.type === "execute") {
     t.statusEffects.push(status);
 
     logs.push(`[상태이상] ${t.name} 부여`);
+  }
+
+  continue;
+}
+
+if (effect.type === "fear") {
+
+  for (const target of targets) {
+
+    if (target.isBoss) {
+      logs.push(`[공포 실패] ${target.name}은(는) 보스다.`);
+      continue;
+    }
+
+    if (!target.statusEffects)
+      target.statusEffects = [];
+
+    target.statusEffects.push({
+      type: "fear",
+      duration: 1
+    });
+
+    logs.push(
+      `[공포] ${target.name}은(는) 다음 행동에 도주한다.`
+    );
+  }
+
+  continue;
+}
+
+if (effect.type === "taunt") {
+
+  for (const target of targets) {
+
+    if (!target.statusEffects) target.statusEffects = [];
+
+    target.statusEffects.push({
+      type: "taunt",
+      duration: effect.duration,
+      targetId: actor.id
+    });
+
+    logs.push(
+      `[도발] ${target.name}은(는) ${actor.name}만 공격할 수 있다.`
+    );
   }
 
   continue;
@@ -320,10 +618,28 @@ if (effect.type === "multi_hit") {
   }
 
   for (let i = 0; i < hitCount + 1; i++) {
-    for (const target of targets) {
+    for (const originalTarget of targets) {
+
+  let target = originalTarget;
       let dmg = evaluateFormula(effect.formula, context);
       dmg = Math.floor(dmg);
-      target.hp = Math.max(0, target.hp - dmg);
+    this.applyDamage(target, dmg, logs);
+      const gutsIndex = target.statusEffects?.findIndex(
+  e => e.type === "guts"
+);
+
+if (
+  target.hp <= 0 &&
+  gutsIndex >= 0
+) {
+  target.hp = 1;
+
+  target.statusEffects.splice(gutsIndex, 1);
+
+  logs.push(
+    `[근성] ${target.name}이(가) 체력 1로 버텼다!`
+  );
+}
       logs.push(`[연속타 ${i + 1}] ${dmg}`);
     }
   }
@@ -364,21 +680,73 @@ if (effect.type === "multi_hit") {
     // =========================
     if (effect.type === "escape") {
 
-      const chance = Math.min(95, this.getFinalStats(actor).agi * 10);
-      const roll = Math.random() * 100;
+    const chance = Math.min(
+        95,
+        this.getFinalStats(actor).agi * 10
+    );
 
-logs.push(`[도주] 성공 확률 ${chance}%`);
+    if (Math.random() * 100 < chance) {
 
-      if (roll < chance) {
         actor.hp = 0;
         this.turnManager.removeDead(actor.id);
-        logs.push(`[도주 성공] ${actor.name}이(가) 전투에서 도주했다.`);
-      } else {
-        logs.push(`[도주 실패] 도주에 실패했다.`);
-      }
 
-      return logs;
+        logs.push(`[도주 성공] ${actor.name}이(가) 전투에서 도주했다.`);
+
+        const alive =
+            this.characters.filter(c => c.hp > 0);
+
+        if (alive.length === 1) {
+            logs.push(`${alive[0].name} 승리!`);
+        }
+
+    } else {
+
+        logs.push(`[도주 실패]`);
+
     }
+
+    return logs;
+}
+
+    if (effect.type === "cleanse") {
+
+  for (const target of targets) {
+
+    if (!target.statusEffects) continue;
+
+    // 제거 가능한 상태이상
+    const removable = [
+      "debuff",
+      "accuracy_buff",
+      "buff"
+    ];
+
+    const index = target.statusEffects.findIndex(e =>
+      removable.includes(e.type) &&
+      (e.value ?? 0) < 0
+    );
+
+    if (index >= 0) {
+
+      const removed =
+        target.statusEffects.splice(index,1)[0];
+
+      logs.push(
+        `[치유] ${target.name}의 ${removed.type} 제거`
+      );
+
+    } else {
+
+      logs.push(
+        `[치유] 제거할 효과가 없다.`
+      );
+
+    }
+
+  }
+
+  continue;
+}
 
     // =========================
     // HEAL
@@ -387,7 +755,9 @@ logs.push(`[도주] 성공 확률 ${chance}%`);
 
   const heal = Math.floor(Math.max(0, evaluateFormula(effect.formula, context)));
 
-for (const target of targets) {
+for (const originalTarget of targets) {
+
+  let target = originalTarget;
   const beforeHp = target.hp; 
   const maxHp = target.maxHp;
 
@@ -403,12 +773,41 @@ for (const target of targets) {
 
 } }
 
+if (effect.type === "revive") {
+
+  const deadTarget = this.characters.find(
+    c =>
+      c.id === targets[0]?.id &&
+      c.team === actor.team &&
+      c.hp <= 0
+  );
+
+  if (!deadTarget) {
+
+    logs.push("[부활 실패] 대상이 살아있다.");
+
+    continue;
+  }
+
+  deadTarget.hp = Math.floor(deadTarget.maxHp * 0.5);
+
+this.turnManager.addCharacter(deadTarget);
+
+logs.push(
+  `[부활] ${deadTarget.name}이(가) 부활했다.`
+);
+
+  continue;
+}
+
     // =========================
     // DAMAGE
     // =========================
 if (effect.type === "dmg") {
 
-  for (const target of targets) {
+  for (const originalTarget of targets) {
+
+  let target = originalTarget;
 
 
     let formula = effect.formula;
@@ -422,6 +821,30 @@ if (berserk && skill.name === "기본 공격") {
 }
 
 let dmg = evaluateFormula(formula, context);
+
+const protect = target.statusEffects?.find(
+  e => e.type === "protect"
+);
+
+if (protect) {
+
+  const protector = this.characters.find(
+    c => c.id === protect.protectorId && c.hp > 0
+  );
+
+  if (protector) {
+
+    logs.push(
+      `[몸빵] ${protector.name}이(가) ${target.name} 대신 공격을 받았다.`
+    );
+
+    target.statusEffects = target.statusEffects.filter(
+      e => e !== protect
+    );
+
+    target = protector;
+  }
+}
   // -------------------------
   // 회피
   // -------------------------
@@ -431,11 +854,20 @@ let dmg = evaluateFormula(formula, context);
 
 if (!effect.ignoreHit && dodgeIndex >= 0) {
 
-    const chance =
-      20 +
-      (target.stats.agi * 10) +
-      (target.stats.int * 5) -
-      (100 - target.hp);
+    let chance =
+  20 +
+  (target.stats.agi * 10) +
+  (target.stats.int * 5) -
+  (100 - target.hp);
+
+const dodgeBuff =
+  target.statusEffects?.filter(
+    e => e.type === "dodge_buff"
+  ) ?? [];
+
+for (const b of dodgeBuff) {
+  chance += b.value;
+}
 
     const roll = Math.random() * 100;
 
@@ -453,10 +885,19 @@ if (!effect.ignoreHit && dodgeIndex >= 0) {
 
       if (!effect.ignoreHit) {
 
-  const hitChance = Math.min(
-    95,
-    60 + (actor.stats?.luk ?? 0) * 9
-  );
+  let hitChance =
+  60 + (actor.stats?.luk ?? 0) * 9;
+
+const accuracyBuff =
+  actor.statusEffects?.filter(
+    e => e.type === "accuracy_buff"
+  ) ?? [];
+
+for (const b of accuracyBuff) {
+  hitChance += b.value;
+}
+
+hitChance = Math.min(95, hitChance);
 
   if (Math.random() * 100 >= hitChance) {
     logs.push(`[실패] ${actor.name} → ${target.name}`);
@@ -494,7 +935,7 @@ const { critBonus, damageMultiplier } =
   this.getElementMultiplier(tempAttacker, target);
 
     dmg *= damageMultiplier;
-    dmg *= this.rollCrit(actor.stats?.luk ?? 0, actor.hp);
+    dmg *= this.rollCrit(actor);
 
     if (critBonus) dmg *= 1.5;
     
@@ -539,7 +980,23 @@ dmg = Math.max(0, Math.floor(reduced));
 // 1. 피해 적용 (기존 코드 유지 또는 확인)
 // =========================================================
 // 피해 적용
-target.hp = Math.max(0, target.hp - dmg);
+this.applyDamage(target, dmg, logs);
+const gutsIndex = target.statusEffects?.findIndex(
+  e => e.type === "guts"
+);
+
+if (
+  target.hp <= 0 &&
+  gutsIndex >= 0
+) {
+  target.hp = 1;
+
+  target.statusEffects.splice(gutsIndex, 1);
+
+  logs.push(
+    `[근성] ${target.name}이(가) 체력 1로 버텼다!`
+  );
+}
 logs.push(`[피해] ${dmg}`);
 
 const reflect = target.statusEffects?.find(
@@ -550,7 +1007,7 @@ if (reflect) {
 
   const reflectDamage = Math.floor(dmg * reflect.ratio);
 
-  actor.hp = Math.max(0, actor.hp - reflectDamage);
+  this.applyDamage(actor, reflectDamage, logs);
 
   logs.push(
     `[반사] ${actor.name}이(가) ${reflectDamage}의 피해를 받았다.`
@@ -567,7 +1024,7 @@ if (counterIndex >= 0) {
   const attackerStr = actor.stats?.str ?? 5;
   const counterDmg = Math.floor(attackerStr * 2);
 
-  actor.hp = Math.max(0, actor.hp - counterDmg);
+  this.applyDamage(actor, counterDmg, logs);
 
   logs.push(
     `[반격 성공] ${target.name} → ${actor.name} ${counterDmg}`
@@ -611,6 +1068,8 @@ for (const effect of skill.effects) {
 
 
 resolveTargets(actor, action) {
+
+  
   if (!action?.targets) return [];
   const enemies = this.characters.filter(c =>
     c.id !== actor.id && c.hp > 0 && c.team !== actor.team
@@ -625,14 +1084,45 @@ resolveTargets(actor, action) {
     case "self":
       return [actor];
 
-    case "single":
-     const t = this.characters.find(c => c.id === action.targets.id);
-return t ? [t] : [];
+    case "single": {
+
+  const attacker = actor;
+
+  const taunt = attacker.statusEffects?.find(
+    e => e.type === "taunt"
+  );
+
+  if (taunt) {
+
+    const forced = this.characters.find(
+      c => c.id === taunt.targetId && c.hp > 0
+    );
+
+    if (forced) {
+      return [forced];
+    }
+  }
+
+  const t = this.characters.find(
+    c => c.id === action.targets.id
+  );
+
+  return t ? [t] : [];
+}
+
+      case "all_allies":
+    return this.characters.filter(
+        c =>
+            c.hp > 0 &&
+            c.team === actor.team
+    );
 
     case "all_enemies":
   return this.characters.filter(
     c => c.hp > 0 && c.team !== actor.team
   );
+
+  
 
     case "random_enemy":
       return [enemies[Math.floor(Math.random() * enemies.length)]];
@@ -689,9 +1179,23 @@ getFinalStats(character) {
   // =========================
   // CRIT
   // =========================
-  rollCrit(luk, hp) {
-    const raw = (luk * 5) - (100 - hp);
-    const chance = Math.max(0, raw);
+  rollCrit(actor) {
+ const luk = actor.stats.luk ?? 0;
+const hp = actor.hp ?? 0;
+
+let chance = Math.max(
+  0,
+  (luk * 5) - (100 - hp)
+);
+
+const critBuff =
+  actor.statusEffects?.filter(
+    e => e.type === "crit_buff"
+  ) ?? [];
+
+for (const b of critBuff) {
+  chance += b.value;
+}
 
     if (Math.random() * 100 >= chance) return 1;
 
@@ -736,6 +1240,52 @@ processStatusEffects(logs, actor) {
 
   actor.statusEffects = next;
 }
+applyDamage(target, damage, logs, attacker = null) {
+
+  target.hp = Math.max(0, target.hp - damage);
+
+const drain = target.statusEffects?.find(
+  e => e.type === "drain"
+);
+
+if (drain) {
+
+  const healer = this.characters.find(
+    c => c.id === drain.healerId
+  );
+
+  if (healer && healer.hp > 0) {
+
+    const heal = Math.floor(damage * drain.ratio);
+
+    healer.hp = Math.min(
+      healer.maxHp,
+      healer.hp + heal
+    );
+
+    logs.push(
+      `[흡수] ${healer.name}이(가) ${heal} 회복`
+    );
+  }
+}
+
+  // 근성
+  const gutsIndex = target.statusEffects?.findIndex(
+    e => e.type === "guts"
+  ) ?? -1;
+
+  if (target.hp <= 0 && gutsIndex >= 0) {
+
+    target.hp = 1;
+
+    target.statusEffects.splice(gutsIndex, 1);
+
+    logs.push(
+      `[근성] ${target.name}이(가) 죽음을 버티고 체력 1로 살아남았다.`
+    );
+  }
+}
+
 applyStatusEffect(effect, actor, logs) {
   switch (effect.type) {
 
@@ -746,7 +1296,7 @@ applyStatusEffect(effect, actor, logs) {
     evaluateFormula(effect.formula, {})
 );
 
-  actor.hp = Math.max(0, actor.hp - dmg);
+  this.applyDamage(actor, dmg, logs);
   logs.push(`[DOT] ${actor.name} -${dmg}`);
   break;
 }

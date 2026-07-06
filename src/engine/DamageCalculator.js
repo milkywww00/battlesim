@@ -5,7 +5,9 @@ export class DamageCalculator {
     for (const effect of skill.effects) {
       if (effect.type === "dmg") {
         const dmg = Math.floor(actor.atk * effect.value);
-        for (const target of targets) {
+        for (const originalTarget of targets) {
+
+  let target = originalTarget;
           target.hp = Math.max(0, target.hp - dmg);
           log.push(`${target.name} takes ${dmg} dmg`);
         }

@@ -82,9 +82,24 @@ renderSkills(actor) {
 
   const berserk = actor.statusEffects?.find(
   e => e.type === "berserk"
+  
 );
 
+const feared = actor.statusEffects?.find(
+  e => e.type === "fear"
+
+);
+
+const sealed =
+  actor.statusEffects?.some(
+    e => e.type === "seal"
+  );
+
   for (const skillId of actor.skills) {
+
+    if (feared) {
+    if (skillId !== "escape") continue;
+  }
 
   // 차지 중
   if (charge) {
@@ -101,6 +116,18 @@ renderSkills(actor) {
     }
 
     const skill = skills[skillId];
+    if (
+  sealed &&
+  ![
+    "attack",
+    "defend",
+    "dodge",
+    "escape"
+  ].includes(skillId)
+) {
+  continue;
+}
+
     if (!skill) continue;
 
     const btn = document.createElement("button");
