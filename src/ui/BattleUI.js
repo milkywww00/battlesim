@@ -375,6 +375,7 @@ if (actor.mp < skill.mpCost) {
 
     btn.onclick = () => {
       this.selectedSkill = skillId;
+      this.selectedItem = null;
       this.selectedTarget = null;
       this.render();
     };
@@ -670,6 +671,7 @@ renderItems(actor){
 
         btn.onclick = () => {
     this.selectedItem = itemId;
+    this.selectedSkill = null;
     this.selectedTarget = null;
     this.render();
 };

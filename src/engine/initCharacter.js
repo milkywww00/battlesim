@@ -12,5 +12,10 @@ const maxMp = 100 + (c.stats.mpStat ?? 0) * 10;
 
     maxMp,
     mp: maxMp,
+
+    inventory: c.inventory ?? {
+     potion: 2,
+     ether: 1
+    }
   };
 }
