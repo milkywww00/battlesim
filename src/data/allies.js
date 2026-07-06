@@ -68,6 +68,10 @@ export const allies = [
    "supportt",
    "supporttt",
 ],
+inventory: {
+    potion: 2,
+    ether: 1
+  }
   },
    {
     id: "B",
@@ -138,6 +142,10 @@ export const allies = [
    "supportt",
    "supporttt",
 ],
+inventory: {
+    potion: 2,
+    ether: 1
+  }
   },
    {
     id: "C",
@@ -208,6 +216,10 @@ export const allies = [
    "supportt",
    "supporttt",
 ],
+inventory: {
+    potion: 2,
+    ether: 1
+  }
   }
   
 ];

@@ -69,6 +69,10 @@ export const enemies = [
    "supportt",
    "supporttt",
 ],
+inventory: {
+    potion: 0,
+    ether: 0
+  }
   },
    {
     id: "E",
@@ -140,6 +144,10 @@ export const enemies = [
    "supportt",
    "supporttt",
 ],
+inventory: {
+    potion: 2,
+    ether: 1
+  }
   },
    {
     id: "F",
@@ -211,5 +219,9 @@ export const enemies = [
    "supportt",
    "supporttt",
 ],
+inventory: {
+    potion: 2,
+    ether: 1
+  }
   }
 ];

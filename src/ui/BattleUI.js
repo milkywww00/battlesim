@@ -1,4 +1,5 @@
 import { skills } from "../data/skills.js";
+import { items } from "../data/items.js";
 
 export class BattleUI {
   constructor(engine, turnManager) {
@@ -7,13 +8,100 @@ export class BattleUI {
     this.turnCount = 0;
     this.selectedSkill = null;
     this.selectedTarget = null;
+    this.selectedItem = null;
 
     this.init();
   }
 
   init() {
 
-    this.skipBtn = document.getElementById("skipBtn");
+    const app = document.getElementById("app");
+
+   app.innerHTML = `
+<div class="battleContainer">
+
+    <h1 class="title">Battle Simulator</h1>
+
+    <div id="turnInfo" class="turnBanner"></div>
+
+    <div class="battleTop">
+
+        <div class="teamColumn">
+            <h2>🟦 Team 1</h2>
+            <div id="team1" class="teamGrid"></div>
+        </div>
+
+        <div class="teamColumn">
+            <h2>🟥 Team 2</h2>
+            <div id="team2" class="teamGrid"></div>
+        </div>
+
+    </div>
+
+    <div class="battleLogPanel">
+
+        <h2>Battle Log</h2>
+
+        <div id="log"></div>
+
+    </div>
+
+    <div class="actionPanel">
+
+        <h2>Skills</h2>
+        <div id="skills"></div>
+
+        <h2>Items</h2>
+<div id="items"></div>
+
+        <h2>Targets</h2>
+        <div id="targets"></div>
+
+        <div class="battleButtons">
+
+            <button id="confirmBtn">
+                행동 확정
+            </button>
+
+            <button id="skipBtn">
+                턴 스킵
+            </button>
+
+        </div>
+
+    </div>
+
+    <details class="debugPanel">
+
+        <summary>Debug</summary>
+
+        <div id="debugTargets"></div>
+
+        <input id="hpInput" type="number" value="10">
+        <button id="hpPlus">HP+</button>
+        <button id="hpMinus">HP-</button>
+
+        <br><br>
+
+        <input id="mpInput" type="number" value="10">
+        <button id="mpPlus">MP+</button>
+        <button id="mpMinus">MP-</button>
+
+        <br><br>
+
+        <input
+            id="statusInput"
+            placeholder="status"
+        >
+
+        <button id="addStatus">
+            상태이상 추가
+        </button>
+
+    </details>
+
+</div>
+`;
 
 if (this.skipBtn) {
   this.skipBtn.addEventListener("click", () => {
@@ -22,6 +110,7 @@ if (this.skipBtn) {
 }
     this.turnInfo = document.getElementById("turnInfo");
     this.skillDiv = document.getElementById("skills");
+    this.itemDiv = document.getElementById("items");
     this.targetDiv = document.getElementById("targets");
     this.log = document.getElementById("log");
     this.confirmBtn = document.getElementById("confirmBtn");
@@ -48,26 +137,36 @@ if (this.skipBtn) {
   this.turnInfo.innerText = `TURN: ${actor.name}`;
 
   this.renderSkills(actor);
+  this.renderItems(actor);
 
-  if (this.selectedSkill) {
-    const skill = skills[this.selectedSkill];
+  const selectedData =
+    this.selectedSkill
+        ? skills[this.selectedSkill]
+        : items[this.selectedItem];
 
-const needsTarget =
-  skill.target !== "self" &&
-  skill.range !== "all";
+if (selectedData) {
+
+    const needsTarget =
+        selectedData.target !== "self" &&
+        selectedData.range !== "all";
 
     if (needsTarget) {
-  this.renderTargets(actor, skill);
-} else {
-      this.targetDiv.innerHTML = "";
+        this.renderTargets(actor, selectedData);
+    } else {
+        this.targetDiv.innerHTML = "";
     }
-  } else {
+
+} else {
     this.targetDiv.innerHTML = "";
-  }
+}
   this.renderCharacters();
 }
 
+
+
 renderCharacters() {
+
+  
 
   const team1 = document.getElementById("team1");
   const team2 = document.getElementById("team2");
@@ -79,7 +178,7 @@ renderCharacters() {
 
     const hpPercent = (c.hp / c.maxHp) * 100;
     const mpPercent = (c.mp / c.maxMp) * 100;
-
+    const inv = c.inventory || {};
     const statuses = (c.statusEffects ?? [])
   .map(s => {
 
@@ -106,9 +205,15 @@ if(dead){
 }
 
     card.innerHTML = `
-    <b style="color:${this.getTypeColor(c.type)}">
-    ${c.name}
-</b></b> (${c.type})
+    <div class="cardHeader">
+
+    <span class="typeCircle"
+        style="background:${this.getTypeColor(c.type)}">
+    </span>
+
+    <b>${c.name}</b>
+
+</div>
 
       <div class="bar">
         <div class="hpBar" style="width:${hpPercent}%"></div>
@@ -121,6 +226,11 @@ if(dead){
       </div>
 
       MP ${c.mp}/${c.maxMp}
+
+        <div class="inventory">
+    🧪 ${inv.potion ?? 0}
+    🔵 ${inv.ether ?? 0}
+  </div>
 
       <div class="statusRow">${statuses}</div>
     `;
@@ -249,7 +359,19 @@ const sealed =
     if (!skill) continue;
 
     const btn = document.createElement("button");
-    btn.innerText = skill.name;
+
+btn.innerHTML = `
+    <div class="skillName">${skill.name}</div>
+    <div class="skillCost">
+        ${skill.mpCost > 0 ? `${skill.mpCost} MP` : "FREE"}
+    </div>
+`;
+
+if (actor.mp < skill.mpCost) {
+
+    btn.disabled = true;
+
+}
 
     btn.onclick = () => {
       this.selectedSkill = skillId;
@@ -309,40 +431,112 @@ for (const c of this.engine.characters) {
   }
 }
 
- addLog(text) {
-  const div = document.createElement("div");
-  div.innerText = text;
+addLog(text){
 
-  this.log.appendChild(div);
+    const div=document.createElement("div");
+
+    div.classList.add("log-line");
+
+    if(text.includes("[피해]")){
+
+        div.innerHTML=`⚔ ${text}`;
+        div.classList.add("log-damage");
+
+    }
+
+    else if(text.includes("[회복]")){
+
+        div.innerHTML=`💚 ${text}`;
+        div.classList.add("log-heal");
+
+    }
+
+    else if(text.includes("[상태이상]")){
+
+        div.innerHTML=`🌀 ${text}`;
+        div.classList.add("log-status");
+
+    }
+
+    else if(text.includes("[명중]")){
+
+        div.innerHTML=`🎯 ${text}`;
+        div.classList.add("log-system");
+
+    }
+
+    else if(text.includes("[효과 종료]")){
+
+        div.innerHTML=`⌛ ${text}`;
+        div.classList.add("log-status");
+
+    }
+
+    else{
+
+        div.innerHTML=text;
+    }
+
+    this.log.appendChild(div);
+
+    this.log.scrollTop=this.log.scrollHeight;
 }
 
 confirmAction() {
-  if (!this.selectedSkill) return;
 
-  const actor = this.turnManager.current();
-  const skill = skills[this.selectedSkill];
+    if (!this.selectedSkill && this.selectedItem == null) return;
 
-  const needsTarget =
-    skill.target !== "self" &&
-    skill.range !== "all";
+    const actor = this.turnManager.current();
+
+    // =========================
+    // 아이템 사용
+    // =========================
+    if (this.selectedItem != null) {
+
+    const logs = this.engine.step({
+        actorId: actor.id,
+        itemId: this.selectedItem,
+        targetId: this.selectedTarget
+    });
+
+        logs.forEach(l => this.addLog(l));
+
+        this.selectedSkill = null;
+        this.selectedItem = null;
+        this.selectedTarget = null;
+
+        this.render();
+
+        return;
+    }
+
+    // =========================
+    // 스킬 사용
+    // =========================
+    const skill = skills[this.selectedSkill];
+
+    const needsTarget =
+        skill.target !== "self" &&
+        skill.range !== "all";
 
     if (needsTarget && !this.selectedTarget) return;
 
-  const action = {
-  actorId: actor.id,
-  skillId: this.selectedSkill,
-  targetId: needsTarget ? this.selectedTarget : null
-};
+    const action = {
+        actorId: actor.id,
+        skillId: this.selectedSkill,
+        targetId: needsTarget ? this.selectedTarget : null
+    };
 
-const logs = this.engine.step(action);
+    const logs = this.engine.step(action);
 
-  logs.forEach(l => this.addLog(l));
+    logs.forEach(l => this.addLog(l));
 
-  this.selectedSkill = null;
-  this.selectedTarget = null;
+    this.selectedSkill = null;
+    this.selectedItem = null;
+    this.selectedTarget = null;
 
-  this.render();
-  }
+    this.render();
+}
 
   renderDebugTargets() {
   const div = document.getElementById("debugTargets");
@@ -449,10 +643,46 @@ skipTurn() {
   });
 
   logs.forEach(l => this.addLog(l)); // ⭐ 이거 추가
-
   this.selectedSkill = null;
   this.selectedTarget = null;
 
   this.render();
+}
+renderItems(actor){
+
+    this.itemDiv.innerHTML = "";
+
+    const inventory = actor.inventory ?? {};
+
+    for(const itemId in inventory){
+
+        const count = inventory[itemId];
+
+        if(count<=0) continue;
+
+        const item = items[itemId];
+
+        if(!item) continue;
+
+        const btn=document.createElement("button");
+
+        btn.innerText=`${item.name} x${count}`;
+
+        btn.onclick = () => {
+    this.selectedItem = itemId;
+    this.selectedTarget = null;
+    this.render();
+};
+
+        if(this.selectedItem===itemId){
+
+            btn.classList.add("selected");
+
+        }
+
+        this.itemDiv.appendChild(btn);
+
+    }
+
 }
 }

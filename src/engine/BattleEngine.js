@@ -1,5 +1,6 @@
 import { skills } from "../data/skills.js";
 import { evaluateFormula } from "./FormulaEngine.js";
+import { items } from "../data/items.js";
 
 export class BattleEngine {
   constructor(allCharacters, turnManager) {
@@ -88,7 +89,11 @@ this.processStatusEffects(logs, currentActor);
     }
 
     
+if(action.itemId){
 
+    return this.useItem(action);
+
+}
 
     const actor = this.characters.find(c => c.id === action.actorId);
     const skill = skills[action.skillId];
@@ -96,6 +101,12 @@ this.processStatusEffects(logs, currentActor);
     const confused = currentActor.statusEffects?.find(
   e => e.type === "confusion"
 );
+
+if(action.itemIndex != null){
+
+    return this.useItem(actor, action.itemIndex);
+
+}
 
 if (confused) {
 
@@ -194,10 +205,19 @@ for (const t of targets) {
   }
 }
 
-    const alive = this.characters.filter(c => c.hp > 0);
-    if (alive.length === 1) {
-      logs.push(`${alive[0].name} 승리!`);
-    }
+    const aliveTeams = [
+  ...new Set(
+    this.characters
+      .filter(c => c.hp > 0)
+      .map(c => c.team)
+  )
+];
+
+if (aliveTeams.length === 1) {
+
+  logs.push(`Team ${aliveTeams[0]} 승리!`);
+
+}
 
     this.turnManager.getNext();
 
@@ -642,7 +662,9 @@ if (effect.type === "crit_buff") {
 
     t.statusEffects.push(status);
 
-    logs.push(`[상태이상] ${t.name} 부여`);
+    logs.push(
+  `[상태이상] ${t.name} - ${this.getStatusName(status.type)} 부여`
+);
   }
 
   continue;
@@ -1490,8 +1512,77 @@ applyStatusEffect(effect, actor, logs) {
 );
 
   this.applyDamage(actor, dmg, logs);
-  logs.push(`[DOT] ${actor.name} -${dmg}`);
+  logs.push(`[지속 피해] ${actor.name} -${dmg}`);
   break;
 }
 }}
+
+getStatusName(type) {
+
+  const names = {
+    dot: "지속 피해",
+    fear: "공포",
+    confusion: "식별불가",
+    restrict: "행동 불가",
+    seal: "봉인",
+    taunt: "도발",
+    charge: "차지",
+    berserk: "광폭화",
+    counter: "반격",
+    reflect: "반사",
+    barrier: "베리어",
+    protect: "보호",
+    guts: "근성",
+    drain: "흡수"
+  };
+
+  return names[type] ?? type;
+}
+useItem(action){
+
+  const logs = [];
+
+  const actor = this.characters.find(
+    c => c.id === action.actorId
+  );
+
+  const target = this.characters.find(
+    c => c.id === action.targetId
+  );
+
+  const item = items[action.itemId];
+
+  if (!item) {
+    logs.push("아이템 없음");
+    return logs;
+  }
+
+  const count = actor.inventory?.[action.itemId] ?? 0;
+
+  if (count <= 0) {
+    logs.push("아이템 부족");
+    return logs;
+  }
+
+  actor.inventory[action.itemId]--;
+
+  logs.push(
+    `${actor.name}이(가) ${item.name} 사용`
+  );
+
+  const targets=this.resolveTargets(actor,{
+    targets:{
+        type:"single",
+        id:action.targetId
+    }
+});
+
+logs.push(
+    ...this.executeSkill(actor,targets,item)
+);
+
+  this.turnManager.getNext();
+
+  return logs;
+}
 }
