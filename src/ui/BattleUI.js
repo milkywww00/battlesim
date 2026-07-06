@@ -68,10 +68,128 @@ const needsTarget =
 }
 
 renderCharacters() {
-  const div = document.getElementById("characters");
-  div.innerHTML = this.engine.characters
-    .map(c => `${c.name} HP:${c.hp} MP:${c.mp}`)
-    .join("<br>");
+
+  const team1 = document.getElementById("team1");
+  const team2 = document.getElementById("team2");
+
+  team1.innerHTML = "";
+  team2.innerHTML = "";
+
+  for (const c of this.engine.characters) {
+
+    const hpPercent = (c.hp / c.maxHp) * 100;
+    const mpPercent = (c.mp / c.maxMp) * 100;
+
+    const statuses = (c.statusEffects ?? [])
+  .map(s => {
+
+      if(s.duration != null)
+          return `${this.getStatusIcon(s.type)}${s.duration}`;
+
+      return this.getStatusIcon(s.type);
+
+  })
+  .join(" ");
+
+    const card = document.createElement("div");
+
+    card.className = "characterCard";
+
+    if (c.id === this.turnManager.current()?.id) {
+  card.classList.add("currentTurn");
+}
+
+const dead = c.hp <= 0;
+
+if(dead){
+    card.classList.add("dead");
+}
+
+    card.innerHTML = `
+    <b style="color:${this.getTypeColor(c.type)}">
+    ${c.name}
+</b></b> (${c.type})
+
+      <div class="bar">
+        <div class="hpBar" style="width:${hpPercent}%"></div>
+      </div>
+
+      HP ${c.hp}/${c.maxHp}
+
+      <div class="bar">
+        <div class="mpBar" style="width:${mpPercent}%"></div>
+      </div>
+
+      MP ${c.mp}/${c.maxMp}
+
+      <div class="statusRow">${statuses}</div>
+    `;
+
+    if (c.team === 1)
+      team1.appendChild(card);
+    else
+      team2.appendChild(card);
+  }
+}
+
+getTypeColor(type){
+
+    switch(type){
+
+        case "A":
+            return "#ff6666";
+
+        case "B":
+            return "#66ff66";
+
+        case "C":
+            return "#6699ff";
+
+        default:
+            return "white";
+    }
+}
+
+getStatusIcon(type) {
+
+  const icons = {
+
+    guard:"🛡",
+
+    dodge:"💨",
+
+    dot:"🔥",
+
+    fear:"😱",
+
+    seal:"🔒",
+
+    confusion:"❓",
+
+    berserk:"💢",
+
+    charge:"⚡",
+
+    barrier:"🟦",
+
+    reflect:"🔁",
+
+    protect:"🛡",
+
+    guts:"❤️",
+
+    counter:"⚔",
+
+    buff:"⬆",
+
+    damage_reduction:"⬇",
+
+    taunt:"📢",
+
+    drain:"🩸"
+  };
+
+  return icons[type] ?? "•";
 }
 renderSkills(actor) {
   this.skillDiv.innerHTML = "";
@@ -157,15 +275,25 @@ renderTargets(actor, skill) {
 
   this.targetDiv.innerHTML = "";
 
-  for (const c of this.engine.characters) {
-    if (c.hp <= 0) continue;
+  const canTargetDead =
+  skill.effects?.some(e => e.type === "revive");
+for (const c of this.engine.characters) {
+
+    // 부활이 아니면 죽은 대상 선택 불가
+    if (!canTargetDead && c.hp <= 0) continue;
+
+    // 부활이면 살아있는 대상 선택 불가
+    if (canTargetDead && c.hp > 0) continue;
 
     if (skill.target === "enemy" && c.team === actor.team) continue;
-if (skill.target === "ally" && c.team !== actor.team) continue;
+    if (skill.target === "ally" && c.team !== actor.team) continue;
 
     const btn = document.createElement("button");
     btn.innerText = `${c.name} HP:${c.hp}/${c.maxHp} MP:${c.mp}/${c.maxMp}`;
-
+    btn.innerText =
+  c.hp <= 0
+    ? `☠ ${c.name}`
+    : `${c.name} HP:${c.hp}/${c.maxHp} MP:${c.mp}/${c.maxMp}`;
     btn.onclick = () => {
       this.selectedTarget = c.id;
 

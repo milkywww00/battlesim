@@ -8,10 +8,16 @@ export class TurnOrderManager {
 
   rebuildOrder() {
   this.order = [...this.characters].sort((a, b) => {
-    const agiDiff = (b.stats.agi ?? 0) - (a.stats.agi ?? 0);
-    if (agiDiff !== 0) return agiDiff;
-    return Math.random() - 0.5;
-  });
+
+  const agiDiff =
+    (b.stats.agi ?? 0) -
+    (a.stats.agi ?? 0);
+
+  if (agiDiff !== 0)
+    return agiDiff;
+
+  return a.tieBreaker - b.tieBreaker;
+});
 
   // 현재 턴 위치 유지 보정
   this.index = 0;
@@ -22,18 +28,31 @@ export class TurnOrderManager {
   this.index = 0;
 }
   getNext() {
+
   if (this.order.length === 0) return null;
 
-  const actor = this.order[this.index];
+  let safety = 0;
 
-  this.index++;
+  while (safety < this.order.length) {
 
-  if (this.index >= this.order.length) {
-    this.index = 0;
+    const actor = this.order[this.index];
+
+    this.index++;
+
+    if (this.index >= this.order.length) {
+      this.index = 0;
+    }
+
+    this.turn++;
+
+    if (actor.hp > 0) {
+      return actor;
+    }
+
+    safety++;
   }
-  this.turn++;
 
-  return actor;
+  return null;
 }
  removeDead(id) {
 

@@ -13,7 +13,7 @@ export const skills = {
   },
 
  heavy_attack: {
-  name: "강공격",
+  name: "반동",
   target: "enemy",
   range: "single",
   mpCost: 10,
@@ -30,7 +30,7 @@ export const skills = {
   },
 
   full_attack: {
-  name: "쎈공격",
+  name: "강화",
   target: "enemy",
   range: "single",
   mpCost: 10,
@@ -75,7 +75,7 @@ export const skills = {
 },
 
   heal: {
-    name: "힐",
+    name: "회복",
     target: "ally",
     range: "single",
     mpCost: 20,
@@ -87,7 +87,7 @@ export const skills = {
     ]
   },
   all_attack: {
-  name: "광역 공격",
+  name: "광역",
   target: "enemy",
   range: "all",
   mpCost: 15,
@@ -100,7 +100,7 @@ export const skills = {
 },
 
 bleed: {
-  name: "출혈",
+  name: "잔열",
   target: "enemy",
   range: "single",
   mpCost: 15,
@@ -123,7 +123,7 @@ bleed: {
 
 
 multi_attack: {
-  name: "연속 공격",
+  name: "연속",
   target: "enemy",
   range: "single",
   mpCost: 10,
@@ -163,7 +163,7 @@ lifesteal: {
   ]
 },
 sure_hit: {
-  name: "확정 공격",
+  name: "명중",
   target: "enemy",
   range: "single",
   mpCost: 10,
@@ -176,7 +176,20 @@ sure_hit: {
   ]
 },
 attribute_attack: {
-  name: "속성 변경 공격",
+  name: "변환A",
+  target: "enemy",
+  range: "single",
+  mpCost: 10,
+  effects: [
+    {
+      type: "dmg",
+      formula: "10+dice(str*5)",
+      attackType: "A"
+    }
+  ]
+},
+attribute_attackk: {
+  name: "변환B",
   target: "enemy",
   range: "single",
   mpCost: 10,
@@ -185,6 +198,19 @@ attribute_attack: {
       type: "dmg",
       formula: "10+dice(str*5)",
       attackType: "B"
+    }
+  ]
+},
+attribute_attackkk: {
+  name: "변환C",
+  target: "enemy",
+  range: "single",
+  mpCost: 10,
+  effects: [
+    {
+      type: "dmg",
+      formula: "10+dice(str*5)",
+      attackType: "C"
     }
   ]
 },
@@ -200,7 +226,7 @@ execute: {
   ]
 },
 charge: {
-  name: "차지",
+  name: "충전",
   target: "self",
   range: "single",
   mpCost: 10,
@@ -211,7 +237,7 @@ charge: {
   ]
 },
 charge_attack: {
-  name: "차지 공격",
+  name: "충전 완료",
   target: "enemy",
   range: "single",
   mpCost: 0,
@@ -224,7 +250,7 @@ charge_attack: {
   ]
 },
 berserk: {
-  name: "광폭화",
+  name: "광기",
   target: "self",
   range: "single",
   mpCost: 10,
@@ -249,7 +275,7 @@ barrier: {
 },
 
 damage_reduction: {
-  name: "방어 강화",
+  name: "보호",
   target: "ally",
   range: "single",
   mpCost: 15,
@@ -263,7 +289,7 @@ damage_reduction: {
 },
 
 reflect: {
-  name: "데미지 반사",
+  name: "반사",
   target: "self",
   range: "single",
   mpCost: 15,
@@ -277,7 +303,7 @@ reflect: {
 },
 
 protect: {
-  name: "몸빵",
+  name: "희생",
   target: "ally",
   range: "single",
   mpCost: 15,
@@ -565,6 +591,114 @@ revive: {
   effects: [
     {
       type: "revive"
+    }
+  ]
+},
+transfer: {
+  name: "전가",
+  target: "ally",
+  range: "single",
+  mpCost: 15,
+  effects: [
+    {
+      type: "transfer",
+      duration: 3
+    }
+  ]
+},
+share_damage: {
+  name: "분배",
+  target: "self",
+  range: "single",
+  mpCost: 15,
+  effects: [
+    {
+      type: "share_damage",
+      duration: 3
+    }
+  ]
+},
+weakness: {
+  name: "약점A",
+  target: "enemy",
+  range: "single",
+  mpCost: 15,
+
+  effects: [
+    {
+      type: "element_weakness",
+      attackType: "A",
+      duration: 3
+    }
+  ]
+},
+weaknesss: {
+  name: "약점B",
+  target: "enemy",
+  range: "single",
+  mpCost: 15,
+
+  effects: [
+    {
+      type: "element_weakness",
+      attackType: "B",
+      duration: 3
+    }
+  ]
+},
+weaknessss: {
+  name: "약점C",
+  target: "enemy",
+  range: "single",
+  mpCost: 15,
+
+  effects: [
+    {
+      type: "element_weakness",
+      attackType: "C",
+      duration: 3
+    }
+  ]
+},
+support: {
+  name: "보완A",
+  target: "ally",
+  range: "single",
+  mpCost: 15,
+
+  effects: [
+    {
+      type: "element_support",
+      attackType: "A",
+      duration: 3
+    }
+  ]
+},
+supportt: {
+  name: "보완B",
+  target: "ally",
+  range: "single",
+  mpCost: 15,
+
+  effects: [
+    {
+      type: "element_support",
+      attackType: "B",
+      duration: 3
+    }
+  ]
+},
+supporttt: {
+  name: "보완C",
+  target: "ally",
+  range: "single",
+  mpCost: 15,
+
+  effects: [
+    {
+      type: "element_support",
+      attackType: "C",
+      duration: 3
     }
   ]
 },

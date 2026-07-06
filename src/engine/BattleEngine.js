@@ -23,11 +23,27 @@ step(action) {
     this.printTurnOrder(logs);
   }
 
-  const currentActor = this.turnManager.current();
+  while (
+  this.turnManager.current() &&
+  this.turnManager.current().hp <= 0
+) {
+  this.turnManager.getNext();
+}
+
+ const currentActor = this.turnManager.current();
+
+if (!currentActor) return logs;
+
+// 죽은 캐릭터면 턴을 즉시 넘긴다.
+if (currentActor.hp <= 0) {
+  this.turnManager.getNext();
+  return logs;
+}
 
 const restricted = currentActor.statusEffects?.find(
   e => e.type === "restrict"
 );
+
 
 if (restricted) {
   logs.push(`[행동 불가] ${currentActor.name}은(는) 움직일 수 없다.`);
@@ -172,6 +188,12 @@ for (const t of targets) {
   }
 }
 
+for (const t of targets) {
+  if (t.hp <= 0) {
+    this.turnManager.removeDead(t.id);
+  }
+}
+
     const alive = this.characters.filter(c => c.hp > 0);
     if (alive.length === 1) {
       logs.push(`${alive[0].name} 승리!`);
@@ -260,6 +282,83 @@ if (effect.type === "berserk") {
   });
 
   logs.push(`${actor.name}이(가) 광폭화했다.`);
+
+  continue;
+}
+
+if (effect.type === "transfer") {
+
+  const target = targets[0];
+
+  actor.statusEffects.push({
+    type: "transfer",
+    duration: effect.duration,
+    targetId: target.id
+  });
+
+  logs.push(
+    `[전가] ${actor.name}의 피해가 ${target.name}에게 전가된다.`
+  );
+
+  continue;
+}
+
+if (effect.type === "share_damage") {
+
+  actor.statusEffects.push({
+    type: "share_damage",
+    duration: effect.duration
+  });
+
+  logs.push(
+    `[분배] ${actor.name}이(가) 피해를 아군과 분배한다.`
+  );
+
+  continue;
+}
+
+if (effect.type === "element_weakness") {
+
+  for (const target of targets) {
+
+    target.statusEffects.push({
+
+      type: "element_weakness",
+
+      attackType: effect.attackType,
+
+      duration: effect.duration
+
+    });
+
+    logs.push(
+      `[약점] ${target.name}의 ${effect.attackType} 약점을 노출시켰다.`
+    );
+
+  }
+
+  continue;
+}
+
+if (effect.type === "element_support") {
+
+  for (const target of targets) {
+
+    target.statusEffects.push({
+
+      type: "element_support",
+
+      attackType: effect.attackType,
+
+      duration: effect.duration
+
+    });
+
+    logs.push(
+      `[보완] ${target.name}의 ${effect.attackType} 대응력이 강화되었다.`
+    );
+
+  }
 
   continue;
 }
@@ -692,12 +791,21 @@ if (
 
         logs.push(`[도주 성공] ${actor.name}이(가) 전투에서 도주했다.`);
 
-        const alive =
-            this.characters.filter(c => c.hp > 0);
+        const allyAlive =
+this.characters.some(
+ c=>c.team===1 && c.hp>0
+);
 
-        if (alive.length === 1) {
-            logs.push(`${alive[0].name} 승리!`);
-        }
+const enemyAlive =
+this.characters.some(
+ c=>c.team===2 && c.hp>0
+);
+
+if (!allyAlive)
+    logs.push("Team2 승리!");
+
+if (!enemyAlive)
+    logs.push("Team1 승리!");
 
     } else {
 
@@ -931,8 +1039,13 @@ const attackType = effect.attackType ?? actor.type;
   `[속성] ${actor.name}(${attackType}) → ${target.name}(${target.type})`
 );
 
-const { critBonus, damageMultiplier } =
-  this.getElementMultiplier(tempAttacker, target);
+const {
+  critBonus,
+  damageMultiplier
+} = this.getElementMultiplier(
+  tempAttacker,
+  target
+);
 
     dmg *= damageMultiplier;
     dmg *= this.rollCrit(actor);
@@ -1159,21 +1272,53 @@ getFinalStats(character) {
     const a = attacker.type;
     const d = defender.type;
 
+    let forceCrit = false;
+let ignorePenalty = false;
+
+for (const e of defender.statusEffects ?? []) {
+
+  if (
+    e.type === "element_weakness" &&
+    e.attackType === attacker.type
+  ) {
+    ignorePenalty = true;
+  }
+
+}
+
+for (const e of attacker.statusEffects ?? []) {
+
+  if (
+    e.type === "element_support" &&
+    e.attackType === defender.type
+  ) {
+    forceCrit = true;
+  }
+
+}
+
     const advantage =
       (a === "A" && d === "B") ||
       (a === "B" && d === "C") ||
       (a === "C" && d === "A");
 
     const disadvantage =
-      (a === "A" && d === "C") ||
-      (a === "B" && d === "A") ||
-      (a === "C" && d === "B");
-
+(
+  (a === "A" && d === "C") ||
+  (a === "B" && d === "A") ||
+  (a === "C" && d === "B")
+)
+&& !ignorePenalty;
     return {
-      critBonus: advantage ? 1 : 0,
-      damageMultiplier: disadvantage ? 0.7 : 1,
-      elementText: ""
-    };
+
+  critBonus:
+    advantage || forceCrit ? 1 : 0,
+
+  damageMultiplier:
+    disadvantage ? 0.7 : 1,
+
+  elementText: ""
+};
   }
 
   // =========================
@@ -1241,7 +1386,55 @@ processStatusEffects(logs, actor) {
   actor.statusEffects = next;
 }
 applyDamage(target, damage, logs, attacker = null) {
+const transfer = target.statusEffects?.find(
+  e => e.type === "transfer"
+);
 
+if (transfer) {
+
+  const receiver = this.characters.find(
+    c =>
+      c.id === transfer.targetId &&
+      c.hp > 0
+  );
+
+  if (receiver) {
+
+    logs.push(
+      `[전가] ${target.name}의 피해가 ${receiver.name}에게 넘어갔다.`
+    );
+
+    target = receiver;
+  }
+}
+const share = target.statusEffects?.find(
+  e => e.type === "share_damage"
+);
+
+if (share) {
+
+  const allies = this.characters.filter(
+    c =>
+      c.team === target.team &&
+      c.hp > 0
+  );
+
+  const split = Math.floor(damage / allies.length);
+
+  for (const ally of allies) {
+
+    ally.hp = Math.max(
+      0,
+      ally.hp - split
+    );
+
+    logs.push(
+      `[분배] ${ally.name} -${split}`
+    );
+  }
+
+  return;
+}
   target.hp = Math.max(0, target.hp - damage);
 
 const drain = target.statusEffects?.find(

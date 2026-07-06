@@ -5,6 +5,8 @@ const maxMp = 100 + (c.stats.mpStat ?? 0) * 10;
   return {
     ...c,
 
+      tieBreaker: Math.random(),
+
     maxHp,
     hp: maxHp,
 
