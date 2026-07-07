@@ -254,16 +254,14 @@ renderCharacters() {
     const hpPercent = (c.hp / c.maxHp) * 100;
     const mpPercent = (c.mp / c.maxMp) * 100;
     const inv = c.inventory || {};
-    const statuses = (c.statusEffects ?? [])
-  .map(s => {
+    const statusItems = (c.statusEffects ?? []).map(s => {
+      const label = this.getStatusLabel(s.type);
+      return s.duration != null ? `${label} ${s.duration}` : label;
+    });
 
-      if(s.duration != null)
-          return `${this.getStatusIcon(s.type)}${s.duration}`;
-
-      return this.getStatusIcon(s.type);
-
-  })
-  .join(" ");
+    const statuses = statusItems.length > 0
+      ? statusItems.map(item => `<span class="statusBadge">${item}</span>`).join("")
+      : '<span class="statusBadge">상태 없음</span>';
 
     const card = document.createElement("div");
 
@@ -300,7 +298,7 @@ if(dead){
       <span class="inventoryItem">🔵 ${inv.ether ?? 0}</span>
     </div>
 
-    <div class="statusRow">${statuses ? statuses : '<span class="statusBadge">상태 없음</span>'}</div>
+    <div class="statusRow">${statuses}</div>
     `;
 
     if (c.team === 1)
@@ -328,46 +326,34 @@ getTypeColor(type){
     }
 }
 
-getStatusIcon(type) {
+getStatusLabel(type) {
 
-  const icons = {
+  const labels = {
 
-    guard:"🛡",
+    guard:"가드",
 
-    dodge:"💨",
+    dodge:"회피",
 
-    dot:"🔥",
+    dot:"지속 피해",
 
-    fear:"😱",
+    fear:"공포",
 
-    seal:"🔒",
-
-    confusion:"❓",
-
-    berserk:"💢",
-
-    charge:"⚡",
-
-    barrier:"🟦",
-
-    reflect:"🔁",
-
-    protect:"🛡",
-
-    guts:"❤️",
-
-    counter:"⚔",
-
-    buff:"⬆",
-
-    damage_reduction:"⬇",
-
-    taunt:"📢",
-
-    drain:"🩸"
+    seal:"봉인",
+    confusion:"혼란",
+    berserk:"광폭",
+    charge:"충전",
+    barrier:"배리어",
+    reflect:"반사",
+    protect:"보호",
+    guts:"근성",
+    counter:"반격",
+    buff:"버프",
+    damage_reduction:"저항",
+    taunt:"도발",
+    drain:"흡수"
   };
 
-  return icons[type] ?? "•";
+  return labels[type] ?? type ?? "상태";
 }
 renderSkills(actor) {
   this.skillDiv.innerHTML = "";
@@ -480,11 +466,7 @@ for (const c of this.engine.characters) {
     if (skill.target === "ally" && c.team !== actor.team) continue;
 
     const btn = document.createElement("button");
-    btn.innerText = `${c.name} HP:${c.hp}/${c.maxHp} MP:${c.mp}/${c.maxMp}`;
-    btn.innerText =
-  c.hp <= 0
-    ? `☠ ${c.name}`
-    : `${c.name} HP:${c.hp}/${c.maxHp} MP:${c.mp}/${c.maxMp}`;
+    btn.innerText = c.hp <= 0 ? `☠ ${c.name}` : c.name;
     btn.onclick = () => {
       this.selectedTarget = c.id;
 

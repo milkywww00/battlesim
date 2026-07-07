@@ -327,8 +327,9 @@ reflect: {
 
 protect: {
   name: "희생",
-  description:"아군 전원의 체력을 회복한다.",
+  description:"사용 후, 지정 대상이 공격을 받을 시 받은 데미지를 스킬 시전자가 대신 받는다.",
   range: "single",
+  target: "ally",
   mpCost: 15,
   effects: [
     {
