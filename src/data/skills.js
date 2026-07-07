@@ -1,6 +1,7 @@
 export const skills = {
   attack: {
   name: "기본 공격",
+  description:"지정 대상을 공격한다.",
   target: "enemy",
   range: "single",
   mpCost: 0,
@@ -14,6 +15,7 @@ export const skills = {
 
  heavy_attack: {
   name: "반동",
+  description:"적 1인을 기본 공격보다 강화된 데미지로 공격한 후 최종 데미지의 40% 만큼 데미지를 입는다.",
   target: "enemy",
   range: "single",
   mpCost: 10,
@@ -31,6 +33,7 @@ export const skills = {
 
   full_attack: {
   name: "강화",
+  description:"적 1인을 기본 공격보다 강화된 데미지로 공격한다.",
   target: "enemy",
   range: "single",
   mpCost: 10,
@@ -44,6 +47,7 @@ export const skills = {
 
   defend: {
   name: "방어",
+  description:"자신의 턴이 되돌아 올때까지 방어 태세를 취한다.",
   target: "self",
   range: "single",
     mpCost: 0,
@@ -54,6 +58,7 @@ export const skills = {
 
  dodge: {
   name: "회피",
+  description:"자신의 턴이 되돌아 올때까지 회피 태세를 취한다.",
   target: "self",
   range: "single",
     mpCost: 0,
@@ -64,6 +69,7 @@ export const skills = {
 
   escape: {
   name: "도주",
+  description:"전투를 포기하고 도주한다.",
   target: "self",
   range: "single",
   mpCost: 0,
@@ -76,6 +82,7 @@ export const skills = {
 
   heal: {
     name: "회복",
+    description:"아군 1인의 체력을 회복한다.",
     target: "ally",
     range: "single",
     mpCost: 20,
@@ -88,9 +95,10 @@ export const skills = {
   },
   all_attack: {
   name: "광역",
+  description:"전투에 참여한 적 전원을 공격한다.",
   target: "enemy",
   range: "all",
-  mpCost: 15,
+  mpCost: 20,
   effects: [
     {
       type: "dmg",
@@ -101,6 +109,7 @@ export const skills = {
 
 bleed: {
   name: "잔열",
+  description:"적 1인을 공격한 후 3턴 간 지속 피해를 입힌다.",
   target: "enemy",
   range: "single",
   mpCost: 15,
@@ -124,9 +133,10 @@ bleed: {
 
 multi_attack: {
   name: "연속",
+  description:"적 1인을 1회 공격 후 확률에 따라 최대 4회까지 연속으로 공격한다.",
   target: "enemy",
   range: "single",
-  mpCost: 10,
+  mpCost: 15,
   effects: [
     {
       type: "multi_hit",
@@ -137,6 +147,7 @@ multi_attack: {
 
 counter: {
   name: "반격",
+  description:"자신의 턴이 되돌아 올때까지 반격 태세를 취한다. 이후 공격 받을 시 반격해 상대에게 데미지를 준다.",
   target: "self",
   range: "single",
   mpCost: 10,
@@ -148,6 +159,7 @@ counter: {
 },
 lifesteal: {
   name: "흡혈",
+  description:"적 1인을 1회 공격 후 최종 데미지의 50% 만큼 자신의 체력을 회복한다.",
   target: "enemy",
   range: "single",
   mpCost: 10,
@@ -164,6 +176,7 @@ lifesteal: {
 },
 sure_hit: {
   name: "명중",
+  description:"회피, 공격 실패 등과 관련 없이 적 1인을 확정적으로 공격한다.",
   target: "enemy",
   range: "single",
   mpCost: 10,
@@ -177,6 +190,7 @@ sure_hit: {
 },
 attribute_attack: {
   name: "변환A",
+  description:"자신의 속성이 아닌 속성으로 적 1인을 공격한다 (A 속성)",
   target: "enemy",
   range: "single",
   mpCost: 10,
@@ -190,6 +204,7 @@ attribute_attack: {
 },
 attribute_attackk: {
   name: "변환B",
+  description:"자신의 속성이 아닌 속성으로 적 1인을 공격한다 (B 속성)",
   target: "enemy",
   range: "single",
   mpCost: 10,
@@ -203,6 +218,7 @@ attribute_attackk: {
 },
 attribute_attackkk: {
   name: "변환C",
+  description:"자신의 속성이 아닌 속성으로 적 1인을 공격한다 (C 속성)",
   target: "enemy",
   range: "single",
   mpCost: 10,
@@ -216,6 +232,7 @@ attribute_attackkk: {
 },
 execute: {
   name: "즉사",
+  description:"체력이 전체 체력의 50% 이하인 적을 일정 확률로 즉사시킨다. (주요 레이드 미적용)",
   target: "enemy",
   range: "single",
   mpCost: 25,
@@ -227,6 +244,7 @@ execute: {
 },
 charge: {
   name: "충전",
+  description:"스킬 시전 후 다음 턴에 적 1인을 강화된 데미지로 공격한다.",
   target: "self",
   range: "single",
   mpCost: 10,
@@ -238,6 +256,7 @@ charge: {
 },
 charge_attack: {
   name: "충전 완료",
+  description:"공격 준비가 끝났다.",
   target: "enemy",
   range: "single",
   mpCost: 0,
@@ -251,6 +270,7 @@ charge_attack: {
 },
 berserk: {
   name: "광기",
+  description:"3턴간 기본 공격만 가능하다. 단, 기본 공격의 데미지를 강화한다.",
   target: "self",
   range: "single",
   mpCost: 10,
@@ -263,6 +283,7 @@ berserk: {
 },
 barrier: {
   name: "베리어",
+  description:"지정 1인에게 3턴 간 방어막을 씌운다. 방어막 효과 적용 중 공격 받을 시, 데미지를 1회 무효로 한다.",
   target: "ally",
   range: "single",
   mpCost: 20,
@@ -276,6 +297,7 @@ barrier: {
 
 damage_reduction: {
   name: "보호",
+  description:"지정 1인이 3턴 간 받는 데미지를 15% 감소시킨다.",
   target: "ally",
   range: "single",
   mpCost: 15,
@@ -290,6 +312,7 @@ damage_reduction: {
 
 reflect: {
   name: "반사",
+  description:"지정 1인이 3턴 간 받는 데미지의 30%를 반사한다.",
   target: "self",
   range: "single",
   mpCost: 15,
@@ -304,7 +327,7 @@ reflect: {
 
 protect: {
   name: "희생",
-  target: "ally",
+  description:"아군 전원의 체력을 회복한다.",
   range: "single",
   mpCost: 15,
   effects: [
@@ -316,6 +339,7 @@ protect: {
 },
 taunt: {
   name: "도발",
+  description:"적 1인이 3턴 간 스킬 시전자만을 공격한다.",
   target: "enemy",
   range: "single",
   mpCost: 10,
@@ -329,6 +353,7 @@ taunt: {
 
 courage: {
   name: "용기",
+  description:"2턴 간 아군 1인의 근력 스테이터스를 1 증가시킨다. (중첩 최대 2회)",
   target: "ally",
   range: "single",
   mpCost: 15,
@@ -345,6 +370,7 @@ courage: {
 
 weakness: {
   name: "쇠약",
+  description:"2턴 간 적 1인의 근력 스테이터스를 1 감소시킨다. (중첩 최대 2회)",
   target: "enemy",
   range: "single",
   mpCost: 15,
@@ -360,6 +386,7 @@ weakness: {
 },
 lucky: {
   name: "행운",
+  description:"2턴 간 아군 1인의 행운 스테이터스를 1 증가시킨다. (중첩 최대 2회)",
   target: "ally",
   range: "single",
   mpCost: 15,
@@ -375,6 +402,7 @@ value:+1,
 },
 unlucky: {
   name: "불운",
+  description:"2턴 간 적 1인의 행운 스테이터스를 1 감소시킨다. (중첩 최대 2회)",
   target: "enemy",
   range: "single",
   mpCost: 15,
@@ -390,6 +418,7 @@ value:-1,
 },
 yyy: {
   name: "둔화",
+  description:"2턴 간 적 1인의 민첩 스테이터스를 1 감소시킨다. (중첩 최대 2회)",
   target: "enemy",
   range: "single",
   mpCost: 15,
@@ -405,6 +434,7 @@ value:-1,
 },
 zzz: {
   name: "신속",
+  description:"2턴 간 아군 1인의 민첩 스테이터스를 1 증가시킨다. (중첩 최대 2회)",
   target: "ally",
   range: "single",
   mpCost: 15,
@@ -420,6 +450,7 @@ value:+1,
 },
 alert: {
   name: "경계",
+  description:"2턴 간 아군 1인의 공격 성공 확률을 10% 증가시킨다.",
   target: "ally",
   range: "single",
   mpCost: 15,
@@ -433,6 +464,7 @@ alert: {
 },
 ddd: {
   name: "방심",
+  description:"2턴 간 적 1인의 공격 성공 확률을 10% 감소시킨다.",
   target: "enemy",
   range: "single",
   mpCost: 15,
@@ -446,6 +478,7 @@ ddd: {
 },
 onechance: {
   name: "일발",
+  description:"2턴 간 아군 1인의 크리티컬 확률을 10% 증가시킨다.",
   target: "ally",
   range: "single",
   mpCost: 15,
@@ -459,6 +492,7 @@ onechance: {
 },
 aaa: {
   name: "모면",
+  description:"2턴 간 아군 1인의 회피 성공 확률을 10% 증가시킨다.",
   target: "ally",
   range: "single",
   mpCost: 15,
@@ -472,6 +506,7 @@ aaa: {
 },
 heal_all: {
   name: "회생",
+  description:"아군 전원의 체력을 회복한다.",
   target: "all_allies",
   range: "all",
   mpCost: 25,
@@ -486,6 +521,7 @@ heal_all: {
 
 cure: {
   name: "치유",
+  description:"아군 1인의 부정적 효과를 랜덤으로 1가지 치료한다.",
   target: "ally",
   range: "single",
   mpCost: 15,
@@ -498,6 +534,7 @@ cure: {
 },
 seal: {
   name: "봉인",
+  description:"2턴 간 적 1인의 스킬 사용을 금지한다.",
   target: "enemy",
   range: "single",
   mpCost: 20,
@@ -514,6 +551,7 @@ seal: {
 },
 restrict: {
   name: "제한",
+  description:"적 1인을 1턴 간 행동 불가로 만든다.",
   target: "enemy",
   range: "single",
   mpCost: 20,
@@ -530,6 +568,7 @@ restrict: {
 },
 confusion: {
   name: "식별불가",
+  description:"3턴 간 적 1인의 공격 대상을 적/아군/자기 자신 중 랜덤으로 결정하게 만든다.",
   target: "enemy",
   range: "single",
   mpCost: 15,
@@ -546,6 +585,7 @@ confusion: {
 },
 fear: {
   name: "공포",
+  description:"적 1인의 다음 행동을 도주로 고정한다. (주요 레이드 미적용)",
   target: "enemy",
   range: "single",
   mpCost: 30,
@@ -558,6 +598,7 @@ fear: {
 },
 guts: {
   name: "근성",
+  description:"사용 후, 체력이 0이 될 시 체력 1로 부활한다.",
   target: "self",
   range: "single",
   mpCost: 30,
@@ -570,6 +611,7 @@ guts: {
 },
 drain: {
   name: "흡수",
+  description:"지정 1인이 3턴간 받는 데미지의 30%만큼의 체력을 스킬 시전자가 회복한다.",
   target: "ally",
   range: "single",
   mpCost: 15,
@@ -584,6 +626,7 @@ drain: {
 },
 revive: {
   name: "부활",
+  description:"행동불가 상태의 아군 1인을 최대 체력의 50%로 즉시 부활시킨다.",
   target: "ally",
   range: "single",
   mpCost: 50,
@@ -596,6 +639,7 @@ revive: {
 },
 transfer: {
   name: "전가",
+  description:"사용 후, 스킬 시전자가 3턴 간 받는 데미지를 지정 대상에게 떠넘긴다.",
   target: "ally",
   range: "single",
   mpCost: 15,
@@ -608,6 +652,7 @@ transfer: {
 },
 share_damage: {
   name: "분배",
+  description:"사용 후, 스킬 시전자가 3턴 간 받는 데미지를 아군 전체에게 분배한다.",
   target: "self",
   range: "single",
   mpCost: 15,
@@ -620,6 +665,7 @@ share_damage: {
 },
 weakness: {
   name: "약점A",
+  description:"적 1인의 특정 속성을 약화시킨다. (A 속성)",
   target: "enemy",
   range: "single",
   mpCost: 15,
@@ -634,6 +680,7 @@ weakness: {
 },
 weaknesss: {
   name: "약점B",
+  description:"적 1인의 특정 속성을 약화시킨다. (B 속성)",
   target: "enemy",
   range: "single",
   mpCost: 15,
@@ -648,6 +695,7 @@ weaknesss: {
 },
 weaknessss: {
   name: "약점C",
+  description:"적 1인의 특정 속성을 약화시킨다. (C 속성)",
   target: "enemy",
   range: "single",
   mpCost: 15,
@@ -662,6 +710,7 @@ weaknessss: {
 },
 support: {
   name: "보완A",
+  description:"아군 1인의 특정 속성을 강화시킨다. (A 속성)",
   target: "ally",
   range: "single",
   mpCost: 15,
@@ -676,6 +725,7 @@ support: {
 },
 supportt: {
   name: "보완B",
+  description:"아군 1인의 특정 속성을 강화시킨다. (B 속성)",
   target: "ally",
   range: "single",
   mpCost: 15,
@@ -690,6 +740,7 @@ supportt: {
 },
 supporttt: {
   name: "보완C",
+  description:"아군 1인의 특정 속성을 강화시킨다. (C 속성)",
   target: "ally",
   range: "single",
   mpCost: 15,

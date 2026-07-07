@@ -19,23 +19,35 @@ export class StartScreen {
         const app = document.getElementById("app");
 
         app.innerHTML = `
-        
-        <h1>Battle Simulator</h1>
+        <div class="startScreen">
+            <div class="startHeader">
+                <div>
+                    <p class="eyebrow">Turn-based battle playground</p>
+                    <h1 class="title">Battle Simulator</h1>
+                    <p class="subtitle">아군과 적군을 선택해 전투를 시작하세요.</p>
+                </div>
+            </div>
 
-        <h2>아군 선택</h2>
+            <div class="selectionGrid">
+                <section class="selectSection">
+                    <h2>🟦 아군 선택</h2>
+                    <div id="allyList"></div>
+                </section>
 
-        <div id="allyList"></div>
+                <section class="selectSection">
+                    <h2>🟥 적 선택</h2>
+                    <div id="enemyList"></div>
+                </section>
+            </div>
 
-        <h2>적 선택</h2>
+            <div id="selectionSummary" class="selectionSummary pending"></div>
 
-        <div id="enemyList"></div>
-
-        <br>
-
-        <button id="startBattle">
-            전투 시작
-        </button>
-
+            <div class="startActions">
+                <button id="startBattle" class="startButton" disabled>
+                    전투 시작
+                </button>
+            </div>
+        </div>
         `;
 
         this.renderCharacters();
@@ -47,30 +59,63 @@ export class StartScreen {
         const allyDiv = document.getElementById("allyList");
         const enemyDiv = document.getElementById("enemyList");
 
+        allyDiv.innerHTML = "";
+        enemyDiv.innerHTML = "";
+
         allies.forEach(c=>{
 
-            allyDiv.innerHTML+=`
-                <label>
+            allyDiv.innerHTML += `
+                <label class="optionCard">
                     <input type="checkbox" value="${c.id}">
-                    ${c.name}
-                </label><br>
+                    <span>${c.name}</span>
+                </label>
             `;
         });
 
         enemies.forEach(c=>{
 
-            enemyDiv.innerHTML+=`
-                <label>
+            enemyDiv.innerHTML += `
+                <label class="optionCard">
                     <input type="checkbox" value="${c.id}">
-                    ${c.name}
-                </label><br>
+                    <span>${c.name}</span>
+                </label>
             `;
         });
+
+        allyDiv.querySelectorAll("input").forEach(input => {
+            input.addEventListener("change", () => this.updateSelectionSummary());
+        });
+
+        enemyDiv.querySelectorAll("input").forEach(input => {
+            input.addEventListener("change", () => this.updateSelectionSummary());
+        });
+
+        this.updateSelectionSummary();
 
         document
             .getElementById("startBattle")
             .onclick=()=>this.startBattle();
 
+    }
+
+    updateSelectionSummary(){
+        const allyCount = document.querySelectorAll("#allyList input:checked").length;
+        const enemyCount = document.querySelectorAll("#enemyList input:checked").length;
+        const summary = document.getElementById("selectionSummary");
+        const startBtn = document.getElementById("startBattle");
+
+        if (!summary || !startBtn) return;
+
+        const ready = allyCount > 0 && enemyCount > 0 && allyCount + enemyCount >= 2;
+        summary.className = `selectionSummary ${ready ? "ready" : "pending"}`;
+        startBtn.disabled = !ready;
+
+        if (!ready) {
+            summary.innerHTML = `<div class="summaryTitle">선택 현황</div>아군 ${allyCount}명 · 적 ${enemyCount}명<br>최소 2명 이상 선택하면 전투를 시작할 수 있습니다.`;
+            return;
+        }
+
+        summary.innerHTML = `<div class="summaryTitle">전투 준비 완료</div>아군 ${allyCount}명 · 적 ${enemyCount}명<br>좋습니다. 전투를 시작해볼까요?`;
     }
 
     startBattle(){

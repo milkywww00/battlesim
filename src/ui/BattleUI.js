@@ -20,59 +20,73 @@ export class BattleUI {
    app.innerHTML = `
 <div class="battleContainer">
 
-    <h1 class="title">Battle Simulator</h1>
+    <div class="battleHeader">
+        <div>
+            <p class="eyebrow">Turn-based battle</p>
+            <h1 class="title">Battle Simulator</h1>
+            <p class="subtitle">전투 상황을 한눈에 보고, 행동을 선택해보세요.</p>
+        </div>
+        <div id="turnInfo" class="turnBanner"></div>
+    </div>
 
-    <div id="turnInfo" class="turnBanner"></div>
+    <div class="battleStage">
+        <div class="battleMeta">
+            <div class="battleBadge">⚔️ Battlefield</div>
+            <div class="battleStatusRow">
+                <div class="statusChip" id="turnChip"></div>
+                <div class="statusChip" id="teamChip"></div>
+                <div class="statusChip" id="aliveChip"></div>
+            </div>
+        </div>
+    </div>
 
     <div class="battleTop">
 
-        <div class="teamColumn">
+        <section class="teamColumn">
             <h2>🟦 Team 1</h2>
             <div id="team1" class="teamGrid"></div>
-        </div>
+        </section>
 
-        <div class="teamColumn">
+        <section class="teamColumn">
             <h2>🟥 Team 2</h2>
             <div id="team2" class="teamGrid"></div>
-        </div>
+        </section>
 
     </div>
 
-    <div class="battleLogPanel">
+    <div class="battleGrid">
+        <section class="panel">
+            <h2>📜 Battle Log</h2>
+            <div id="actionSummary" class="actionSummary"></div>
+            <div id="log"></div>
+        </section>
 
-        <h2>Battle Log</h2>
+        <section class="panel">
+            <h2>⚔️ Skills</h2>
+            <div id="skills"></div>
 
-        <div id="log"></div>
+            <h2>🧪 Items</h2>
+            <div id="items"></div>
 
+            <h2>🎯 Targets</h2>
+            <div id="targets"></div>
+
+            <div class="battleButtons">
+                <button id="confirmBtn">행동 확정</button>
+                <button id="skipBtn">턴 스킵</button>
+            </div>
+        </section>
     </div>
 
-    <div class="actionPanel">
-
-        <h2>Skills</h2>
-        <div id="skills"></div>
-
-        <h2>Items</h2>
-<div id="items"></div>
-
-        <h2>Targets</h2>
-        <div id="targets"></div>
-
-        <div class="battleButtons">
-
-            <button id="confirmBtn">
-                행동 확정
-            </button>
-
-            <button id="skipBtn">
-                턴 스킵
-            </button>
-
+    <div id="resultOverlay" class="resultOverlay hidden">
+        <div class="resultCard">
+            <div id="resultTitle" class="resultTitle"></div>
+            <div id="resultText" class="resultText"></div>
+            <button id="restartBtn">다시 선택</button>
         </div>
-
     </div>
 
     <details class="debugPanel">
-
         <summary>Debug</summary>
 
         <div id="debugTargets"></div>
@@ -89,27 +103,24 @@ export class BattleUI {
 
         <br><br>
 
-        <input
-            id="statusInput"
-            placeholder="status"
-        >
-
-        <button id="addStatus">
-            상태이상 추가
-        </button>
-
+        <input id="statusInput" placeholder="status">
+        <button id="addStatus">상태이상 추가</button>
     </details>
 
 </div>
 `;
 
-if (this.skipBtn) {
-  this.skipBtn.addEventListener("click", () => {
-    this.skipTurn();
-  });
-}
     this.turnInfo = document.getElementById("turnInfo");
+    this.turnChip = document.getElementById("turnChip");
+    this.teamChip = document.getElementById("teamChip");
+    this.aliveChip = document.getElementById("aliveChip");
+    this.actionSummary = document.getElementById("actionSummary");
     this.skillDiv = document.getElementById("skills");
+    this.skipBtn = document.getElementById("skipBtn");
+    this.resultOverlay = document.getElementById("resultOverlay");
+    this.resultTitle = document.getElementById("resultTitle");
+    this.resultText = document.getElementById("resultText");
+    this.restartBtn = document.getElementById("restartBtn");
     this.itemDiv = document.getElementById("items");
     this.targetDiv = document.getElementById("targets");
     this.log = document.getElementById("log");
@@ -120,6 +131,18 @@ if (this.skipBtn) {
       this.renderCharacters();
       this.debugTargetId = null;
     });
+
+    if (this.skipBtn) {
+      this.skipBtn.addEventListener("click", () => {
+        this.skipTurn();
+      });
+    }
+
+    if (this.restartBtn) {
+      this.restartBtn.addEventListener("click", () => {
+        window.location.reload();
+      });
+    }
 
     this.render();
   }
@@ -135,16 +158,36 @@ if (this.skipBtn) {
   }
 
   this.turnInfo.innerText = `TURN: ${actor.name}`;
+  this.renderBattleMeta(actor);
+
+  const selectedLabel = this.selectedSkill
+    ? skills[this.selectedSkill]?.name
+    : this.selectedItem
+      ? items[this.selectedItem]?.name
+      : "행동을 선택하세요";
+  const target = this.selectedTarget
+    ? this.engine.characters.find(c => c.id === this.selectedTarget)
+    : null;
+  const targetLabel = target ? target.name : "대상 미선택";
+  const selectedData = this.selectedSkill
+    ? skills[this.selectedSkill]
+    : this.selectedItem
+      ? items[this.selectedItem]
+      : null;
+
+  const description = selectedData?.description ? `<div class="summaryDesc">${selectedData.description}</div>` : "";
+  const statusText = this.selectedSkill || this.selectedItem
+    ? `<strong>${this.selectedSkill ? "스킬" : "아이템"}</strong>: ${selectedLabel}${target && (this.selectedSkill || this.selectedItem) ? ` → ${targetLabel}` : ""}${description}`
+    : `현재 턴의 행동을 선택하면 여기에 요약이 표시됩니다.`;
+
+  if (this.actionSummary) {
+    this.actionSummary.innerHTML = `<div class="summaryTitle">행동 미리보기</div><div class="summaryBody">${statusText}</div>`;
+  }
 
   this.renderSkills(actor);
   this.renderItems(actor);
 
-  const selectedData =
-    this.selectedSkill
-        ? skills[this.selectedSkill]
-        : items[this.selectedItem];
-
-if (selectedData) {
+  if (selectedData) {
 
     const needsTarget =
         selectedData.target !== "self" &&
@@ -160,9 +203,41 @@ if (selectedData) {
     this.targetDiv.innerHTML = "";
 }
   this.renderCharacters();
+  this.updateBattleResult();
 }
 
+renderBattleMeta(actor) {
+  const alive = this.engine.characters.filter(c => c.hp > 0);
+  const teams = [...new Set(alive.map(c => c.team))];
+  const turnLabel = actor ? `${actor.name}의 턴` : "전투 종료";
 
+  if (this.turnChip) {
+    this.turnChip.innerHTML = `<strong>현재 턴</strong> · ${turnLabel}`;
+  }
+
+  if (this.teamChip) {
+    const teamSummary = teams.length > 1 ? `${teams.length}팀 전투 중` : `팀 ${teams[0]} 우세`;
+    this.teamChip.innerHTML = `<strong>전투 상태</strong> · ${teamSummary}`;
+  }
+
+  if (this.aliveChip) {
+    this.aliveChip.innerHTML = `<strong>잔존 인원</strong> · ${alive.length}명`; 
+  }
+}
+
+updateBattleResult() {
+  const alive = this.engine.characters.filter(c => c.hp > 0);
+  const teams = [...new Set(alive.map(c => c.team))];
+
+  if (teams.length <= 1 && this.resultOverlay) {
+    const winner = teams[0] ?? this.engine.characters[0]?.team;
+    this.resultTitle.textContent = winner === 1 ? "아군 승리" : "적군 승리";
+    this.resultText.textContent = `남은 전투 인원 ${alive.length}명으로 전투가 끝났습니다.`;
+    this.resultOverlay.classList.remove("hidden");
+  } else if (this.resultOverlay) {
+    this.resultOverlay.classList.add("hidden");
+  }
+}
 
 renderCharacters() {
 
@@ -206,33 +281,26 @@ if(dead){
 
     card.innerHTML = `
     <div class="cardHeader">
+      <span class="typeCircle" style="background:${this.getTypeColor(c.type)}"></span>
+      <b>${c.name}</b>
+    </div>
 
-    <span class="typeCircle"
-        style="background:${this.getTypeColor(c.type)}">
-    </span>
+    <div class="bar">
+      <div class="hpBar" style="width:${hpPercent}%"></div>
+    </div>
+    <div class="statText"><span>HP</span><span>${c.hp}/${c.maxHp}</span></div>
 
-    <b>${c.name}</b>
+    <div class="bar">
+      <div class="mpBar" style="width:${mpPercent}%"></div>
+    </div>
+    <div class="statText"><span>MP</span><span>${c.mp}/${c.maxMp}</span></div>
 
-</div>
+    <div class="inventory">
+      <span class="inventoryItem">🧪 ${inv.potion ?? 0}</span>
+      <span class="inventoryItem">🔵 ${inv.ether ?? 0}</span>
+    </div>
 
-      <div class="bar">
-        <div class="hpBar" style="width:${hpPercent}%"></div>
-      </div>
-
-      HP ${c.hp}/${c.maxHp}
-
-      <div class="bar">
-        <div class="mpBar" style="width:${mpPercent}%"></div>
-      </div>
-
-      MP ${c.mp}/${c.maxMp}
-
-        <div class="inventory">
-    🧪 ${inv.potion ?? 0}
-    🔵 ${inv.ether ?? 0}
-  </div>
-
-      <div class="statusRow">${statuses}</div>
+    <div class="statusRow">${statuses ? statuses : '<span class="statusBadge">상태 없음</span>'}</div>
     `;
 
     if (c.team === 1)
@@ -483,6 +551,19 @@ addLog(text){
     this.log.scrollTop=this.log.scrollHeight;
 }
 
+  logActionAndResults(actionText, logs) {
+    const turnOrderLog = logs.find(log => log.includes("[턴 순서]"));
+    const otherLogs = logs.filter(log => !log.includes("[턴 순서]"));
+
+    if (turnOrderLog) {
+      this.addLog(turnOrderLog);
+    }
+
+    this.addLog(actionText);
+
+    otherLogs.forEach(log => this.addLog(log));
+  }
+
 confirmAction() {
 
     if (!this.selectedSkill && this.selectedItem == null) return;
@@ -494,13 +575,18 @@ confirmAction() {
     // =========================
     if (this.selectedItem != null) {
 
+    const item = items[this.selectedItem];
+    const target = this.selectedTarget
+      ? this.engine.characters.find(c => c.id === this.selectedTarget)
+      : null;
+
     const logs = this.engine.step({
         actorId: actor.id,
         itemId: this.selectedItem,
         targetId: this.selectedTarget
     });
 
-        logs.forEach(l => this.addLog(l));
+    this.logActionAndResults(`[행동] ${actor.name}이(가) ${item?.name || "아이템"}을(를) ${target ? `${target.name}에게` : "사용했다"}.`, logs);
 
         this.selectedSkill = null;
         this.selectedItem = null;
@@ -530,7 +616,7 @@ confirmAction() {
 
     const logs = this.engine.step(action);
 
-    logs.forEach(l => this.addLog(l));
+    this.logActionAndResults(`[행동] ${actor.name}이(가) ${skill?.name || "스킬"}을(를) 사용했다.`, logs);
 
     this.selectedSkill = null;
     this.selectedItem = null;
@@ -643,7 +729,7 @@ skipTurn() {
     targetId: actor.id
   });
 
-  logs.forEach(l => this.addLog(l)); // ⭐ 이거 추가
+  this.logActionAndResults(`[행동] ${actor.name}이(가) 턴을 스킵했다.`, logs);
   this.selectedSkill = null;
   this.selectedTarget = null;
 
