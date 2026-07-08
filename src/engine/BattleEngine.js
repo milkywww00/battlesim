@@ -263,7 +263,7 @@ const context = {
     console.log(effect);
 console.log(effect.type);
 
-    if (effect.type === "charged_attack") {
+    if (effect.type === "charge_attack") {
 
   const charge = actor.statusEffects?.find(
     e => e.type === "charge"
@@ -285,6 +285,7 @@ console.log(effect.type);
       mpCost: 0
     })
   );
+  
 
   actor.statusEffects =
     actor.statusEffects.filter(

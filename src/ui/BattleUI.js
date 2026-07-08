@@ -379,23 +379,27 @@ const sealed =
 
   for (const skillId of actor.skills) {
 
-    if (feared) {
+// 공포
+if (feared) {
     if (skillId !== "escape") continue;
-  }
-
-  // 차지 중
-  if (charge) {
-    if (skillId !== "charge_release") continue;
-  }
-
-  // 광폭화 중
-  if (berserk && skillId !== "attack") {
-  continue;
 }
-    // 평소에는 차지공격 숨김
-    else {
-      if (skillId === "charge_attack") continue;
+
+// 차지 중
+if (charge) {
+    if (skillId !== "charge_attack") {
+        continue;
     }
+}
+
+// 평소에는 차지 공격 숨김
+if (!charge && skillId === "charge_attack") {
+    continue;
+}
+
+// 광폭화
+if (berserk && skillId !== "attack") {
+    continue;
+}
 
     const skill = skills[skillId];
     if (
