@@ -13,38 +13,6 @@ export const skills = {
     ]
   },
 
- heavy_attack: {
-  name: "반동",
-  description:"적 1인을 기본 공격보다 강화된 데미지로 공격한 후 최종 데미지의 40% 만큼 데미지를 입는다.",
-  target: "enemy",
-  range: "single",
-  mpCost: 10,
-    effects: [
-      {
-        type: "dmg",
-        formula: "15 + dice(str * 5)+ dice(str * 5)"
-      },
-      {
-        type: "self_damage",
-        ratio: 0.4
-      }
-    ]
-  },
-
-  full_attack: {
-  name: "강화",
-  description:"적 1인을 기본 공격보다 강화된 데미지로 공격한다.",
-  target: "enemy",
-  range: "single",
-  mpCost: 10,
-    effects: [
-      {
-        type: "dmg",
-        formula: "20 + dice(str * 5)"
-      }
-    ]
-  },
-
   defend: {
   name: "방어",
   description:"자신의 턴이 되돌아 올때까지 방어 태세를 취한다.",
@@ -79,6 +47,38 @@ export const skills = {
     }
   ]
 },
+
+ heavy_attack: {
+  name: "반동",
+  description:"적 1인을 기본 공격보다 강화된 데미지로 공격한 후 최종 데미지의 40% 만큼 데미지를 입는다.",
+  target: "enemy",
+  range: "single",
+  mpCost: 10,
+    effects: [
+      {
+        type: "dmg",
+        formula: "15 + dice(str * 5)+ dice(str * 5)"
+      },
+      {
+        type: "self_damage",
+        ratio: 0.4
+      }
+    ]
+  },
+
+  full_attack: {
+  name: "강화",
+  description:"적 1인을 기본 공격보다 강화된 데미지로 공격한다.",
+  target: "enemy",
+  range: "single",
+  mpCost: 10,
+    effects: [
+      {
+        type: "dmg",
+        formula: "20 + dice(str * 5)"
+      }
+    ]
+  },
 
   heal: {
     name: "회복",
@@ -369,7 +369,7 @@ courage: {
   ]
 },
 
-weakness: {
+weak: {
   name: "쇠약",
   description:"2턴 간 적 1인의 근력 스테이터스를 1 감소시킨다. (중첩 최대 2회)",
   target: "enemy",
